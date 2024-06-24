@@ -1,0 +1,44 @@
+{
+    order crowdsec first
+    order respond after crowdsec
+    email ${EMAIL}
+
+    crowdsec {
+        api_key ${CADDY_BOUNCER}
+        api_url http://127.0.0.1:13000
+        ticker_interval 15s
+    }
+}
+
+(common) {
+    crowdsec
+
+    tls {
+        dns cloudflare ${CLOUDFLARE_API}
+        resolvers 1.1.1.1 1.0.0.1
+        propagation_delay 3s
+    }
+
+    log {
+        format json
+
+        output file /var/log/caddy/caddy.log {
+            roll_local_time
+        }
+    }
+
+    respond /robots.txt 200 {
+        body <<RBT
+            User-agent: *
+            Disallow: /
+            RBT
+        close
+    }
+}
+
+:80 {
+    import common
+
+    root /ext/site
+    file_server
+}

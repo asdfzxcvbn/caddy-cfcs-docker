@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  caddy:
+    container_name: caddy
+    image: ghcr.io/asdfzxcvbn/caddy-cfcs-docker:main
+    restart: always
+    network_mode: host  # needed to get the real IPs of users
+    environment:
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /config
+    volumes:
+      - ./data:/data
+      - ./config:/config
+      - ./logs:/var/log
+      - ./ext:/ext:ro
+    depends_on:
+      - crowdsec
+
+  crowdsec:
+    container_name: crowdsec
+    image: docker.io/crowdsecurity/crowdsec:latest
+    restart: always
+    environment:
+      GID: 1001  # change as necessary (`id` command)
+      COLLECTIONS: crowdsecurity/caddy
+      BOUNCER_KEY_CADDY: ${CADDY_BOUNCER}
+    ports:
+      - 127.0.0.1:13000:8080
+    volumes:
+      - ./cs/db:/var/lib/crowdsec/data
+      - ./cs/conf:/etc/crowdsec
+      - ./logs:/ext-logs:ro
+    networks:
+      - crowdnet
+    depends_on:
+      - crowdsec-db
+    security_opt:
+      - no-new-privileges:true  # prevent root escalation
+
+  crowdsec-db:
+    container_name: crowdsec-db
+    image: docker.io/yobasystems/alpine-mariadb:amd64
+    restart: always
+    environment:
+      MYSQL_DATABASE: crowdsec
+      MYSQL_USER: cs
+      MYSQL_PASSWORD: ${CROWDSEC_PASS}
+      MYSQL_ROOT_PASSWORD: ${CROWDSEC_PASS}
+    volumes:
+      - ./cs/maria:/var/lib/mysql
+    networks:
+      - crowdnet
+
+networks:
+  crowdnet:
+    external: true
