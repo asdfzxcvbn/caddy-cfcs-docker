@@ -14,6 +14,7 @@ services:
       - ./config:/config
       - ./logs:/var/log
       - ./ext:/ext:ro
+      - ./Caddyfile:/data/Caddyfile:ro
     depends_on:
       - crowdsec
 
@@ -22,7 +23,7 @@ services:
     image: docker.io/crowdsecurity/crowdsec:latest
     restart: always
     environment:
-      GID: 1001  # change as necessary (`id` command)
+      GID: 1000  # change as necessary (`id` command)
       COLLECTIONS: crowdsecurity/caddy
       BOUNCER_KEY_CADDY: ${CADDY_BOUNCER}
     ports:
