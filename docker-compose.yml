@@ -14,7 +14,6 @@ services:
       - ./config:/config
       - ./logs:/var/log
       - ./ext:/ext:ro
-      - ./Caddyfile:/data/Caddyfile:ro
     depends_on:
       - crowdsec
 
