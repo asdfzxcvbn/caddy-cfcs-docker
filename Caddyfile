@@ -23,7 +23,9 @@
         format json
 
         output file /var/log/caddy/caddy.log {
-            roll_local_time
+            roll_size 2MiB
+            roll_keep 0
+            roll_uncompressed
         }
     }
 
